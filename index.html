@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TikTok Wrapped</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>TikTok Wrapped</h1>
+            <p class="subtitle">Visualize your year on TikTok</p>
+        </header>
+
+        <main>
+            <div class="upload-section" id="uploadSection">
+                <h2>Upload Your TikTok Data</h2>
+                <p class="instructions">
+                    To get started, upload your TikTok data file (.JSON format)
+                    <br>
+                    <small>Don't have your data? <a href="#" id="howToGet">Learn how to get it</a></small>
+                </p>
+                
+                <div class="upload-box">
+                    <input type="file" id="fileInput" accept=".json" class="file-input" hidden>
+                    <label for="fileInput" class="upload-button">Choose File</label>
+                    <p id="fileName" class="file-name"></p>
+                </div>
+
+                <div id="loadingSection" class="loading-section hidden">
+                    <div class="loading-spinner"></div>
+                    <p>Processing your data...</p>
+                </div>
+            </div>
+
+            <div class="visualization-section hidden" id="visualizationSection">
+                <h2>Your TikTok Activity</h2>
+                <div class="viz-controls">
+                    <div class="viz-toggle">
+                        <label class="switch">
+                            <input type="checkbox" id="vizTypeToggle">
+                            <span class="slider round"></span>
+                        </label>
+                        <span class="viz-label" id="vizLabel">Bar Graph</span>
+                    </div>
+                </div>
+                <div class="year-navigation">
+                    <button id="prevYear" class="year-nav-btn">◀</button>
+                    <span id="currentYear" class="year-display"></span>
+                    <button id="nextYear" class="year-nav-btn">▶</button>
+                    <button id="allYearsBtn" class="all-years-btn">Show All Years</button>
+                </div>
+                <div class="chart-container">
+                    <canvas id="activityChart" aria-label="TikTok activity over time" role="img"></canvas>
+                    <div id="heatmapChart" class="hidden">
+                        <div id="heatmapContent"></div>
+                    </div>
+                </div>
+                
+                <div class="stats-section">
+                    <button class="stats-toggle" id="statsToggle">
+                        Show Detailed Statistics
+                        <span class="toggle-icon">▼</span>
+                    </button>
+                    <div class="stats-content hidden" id="statsContent">
+                        <div class="stats-grid" id="statsGrid">
+                            <!-- Stats will be inserted here by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="comments-section hidden" id="commentsSection">
+                <h2>Your TikTok Comments</h2>
+                <div class="year-navigation">
+                    <button id="commentPrevYear" class="year-nav-btn">◀</button>
+                    <span id="commentCurrentYear" class="year-display"></span>
+                    <button id="commentNextYear" class="year-nav-btn">▶</button>
+                    <button id="commentAllYearsBtn" class="all-years-btn">Show All Years</button>
+                </div>
+                
+                <div class="charts-container">
+                    <div class="comment-chart-container">
+                        <div class="chart-wrapper">
+                            <canvas id="commentActivityChart" aria-label="Comment activity over time" role="img"></canvas>
+                        </div>
+                    </div>
+                    <div class="word-cloud-container">
+                        <h3>Most Used Words in Comments</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="wordCloudChart" aria-label="Most used words in comments" role="img"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stats-section">
+                    <button class="stats-toggle" id="commentStatsToggle">
+                        Show Comment Statistics
+                        <span class="toggle-icon">▼</span>
+                    </button>
+                    <div class="stats-content hidden" id="commentStatsContent">
+                        <div class="stats-grid" id="commentStatsGrid">
+                            <!-- Comment stats will be inserted here by JavaScript -->
+                        </div>
+                        <div class="comments-list hidden" id="commentsList">
+                            <h3>Your Comments</h3>
+                            <div class="comments-container" id="commentsContainer">
+                                <!-- Comments will be inserted here by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="direct-messages-section hidden" id="directMessagesSection">
+                <h2>Your TikTok Direct Messages</h2>
+                <div class="year-navigation">
+                    <button id="dmPrevYear" class="year-nav-btn">◀</button>
+                    <span id="dmCurrentYear" class="year-display"></span>
+                    <button id="dmNextYear" class="year-nav-btn">▶</button>
+                    <button id="dmAllYearsBtn" class="all-years-btn">Show All Years</button>
+                </div>
+                
+                <div class="charts-container">
+                    <div class="dm-chart-container">
+                        <div class="chart-wrapper">
+                            <canvas id="dmActivityChart" aria-label="Direct message activity over time" role="img"></canvas>
+                        </div>
+                    </div>
+                    <div class="dm-users-container">
+                        <div class="chart-wrapper">
+                            <canvas id="dmUsersChart" aria-label="Most active message contacts" role="img"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stats-section">
+                    <button class="stats-toggle" id="dmStatsToggle">
+                        Show Message Statistics
+                        <span class="toggle-icon">▼</span>
+                    </button>
+                    <div class="stats-content hidden" id="dmStatsContent">
+                        <div class="stats-grid" id="dmStatsGrid">
+                            <!-- DM stats will be inserted here by JavaScript -->
+                        </div>
+                        <div class="messages-list hidden" id="messagesList">
+                            <h3>Your Messages</h3>
+                            <div class="messages-container" id="messagesContainer">
+                                <!-- Messages will be inserted here by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <div id="instructionsModal" class="modal hidden">
+            <div class="modal-content">
+                <span class="close-button">&times;</span>
+                <h2>How to Get Your TikTok Data</h2>
+                <ol>
+                    <li>Open TikTok and go to your Profile</li>
+                    <li>Tap the menu button (≡) and select "Settings and privacy"</li>
+                    <li>Under "Account", tap "Download your data"</li>
+                    <li>Select "JSON" as the format and request your data</li>
+                    <li>Wait for TikTok to prepare your data (this may take a few days)</li>
+                    <li>Once ready, download and upload the file here</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html> 
