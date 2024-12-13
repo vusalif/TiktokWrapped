@@ -27,8 +27,8 @@
 <body>
     <div class="container">
         <header>
-            <h1>TikTok Wrapped</h1>
-            <p class="subtitle">Visualize your year on TikTok</p>
+            <h1>what a year huh?</h1>
+            <p class="subtitle">tiktok wrapped</p>
         </header>
 
         <div class="profile-section hidden" id="profileSection">
@@ -64,15 +64,12 @@
         <main>
             <div class="upload-section" id="uploadSection">
                 <h2>Upload Your TikTok Data</h2>
-                <p class="instructions">
-                    To get started, upload your TikTok data file (.JSON format)
-                    <br>
-                    <small>Don't have your data? <a href="#" id="howToGet">Learn how to get it</a></small>
-                </p>
                 
                 <div class="upload-box">
                     <input type="file" id="fileInput" accept=".json" class="file-input" hidden>
-                    <label for="fileInput" class="upload-button">Choose File</label>
+                    <div class="upload-button-container">
+                        <label for="fileInput" class="upload-button">Choose File</label>
+                    </div>
                     <p id="fileName" class="file-name"></p>
                 </div>
 
@@ -82,11 +79,28 @@
                 </div>
             </div>
 
+            <div class="video-container">
+                <div class="video-wrapper">
+                    <video src="1.mp4" autoplay loop muted playsinline class="tutorial-video" onclick="openFullscreen(this)"></video>
+                    <div class="video-text">
+                        <h3>Request Your Data</h3>
+                        <p>Go to TikTok Privacy Settings</p>
+                    </div>
+                </div>
+                <div class="video-wrapper">
+                    <video src="2.mp4" autoplay loop muted playsinline class="tutorial-video" onclick="openFullscreen(this)"></video>
+                    <div class="video-text">
+                        <h3>Upload & Analyze</h3>
+                        <p>See your TikTok year in review</p>
+                    </div>
+                </div>
+            </div>
+
             <div class="visualization-section hidden" id="visualizationSection">
                 <div class="viz-header">
                     <h2>Your TikTok Activity</h2>
                     <button class="show-highlights-btn" id="showHighlightsBtn">
-                        <span>✨ Show Highlights</span>
+                        <span>Show Highlights</span>
                     </button>
                 </div>
                 <div class="viz-controls">
@@ -112,13 +126,12 @@
                 </div>
                 
                 <div class="stats-section">
-                    <button class="stats-toggle" id="statsToggle">
-                        Show Detailed Statistics
-                        <span class="toggle-icon">▼</span>
+                    <button class="toggle-button" id="statsToggle">
+                        Detailed Statistics <span class="toggle-icon">▼</span>
                     </button>
                     <div class="stats-content hidden" id="statsContent">
                         <div class="stats-grid" id="statsGrid">
-                            <!-- Stats will be inserted here by JavaScript -->
+                            <!-- Stats content will be populated here -->
                         </div>
                     </div>
                 </div>
@@ -148,7 +161,7 @@
                 </div>
 
                 <div class="stats-section">
-                    <button class="stats-toggle" id="commentStatsToggle">
+                    <button class="toggle-button" id="commentStatsToggle">
                         Show Comment Statistics
                         <span class="toggle-icon">▼</span>
                     </button>
@@ -189,7 +202,7 @@
                 </div>
 
                 <div class="stats-section">
-                    <button class="stats-toggle" id="dmStatsToggle">
+                    <button class="toggle-button" id="dmStatsToggle">
                         Show Message Statistics
                         <span class="toggle-icon">▼</span>
                     </button>
@@ -207,22 +220,21 @@
                 </div>
             </div>
         </main>
-
-        <div id="instructionsModal" class="modal hidden">
-            <div class="modal-content">
-                <span class="close-button">&times;</span>
-                <h2>How to Get Your TikTok Data</h2>
-                <ol>
-                    <li>Open TikTok and go to your Profile</li>
-                    <li>Tap the menu button (≡) and select "Settings and privacy"</li>
-                    <li>Under "Account", tap "Download your data"</li>
-                    <li>Select "JSON" as the format and request your data</li>
-                    <li>Wait for TikTok to prepare your data (this may take a few days)</li>
-                    <li>Once ready, download and upload the file here</li>
-                </ol>
-            </div>
-        </div>
     </div>
     <script src="app.js"></script>
+    <script>
+        function openFullscreen(video) {
+            if (video.requestFullscreen) {
+                video.requestFullscreen();
+            } else if (video.webkitRequestFullscreen) { /* Safari */
+                video.webkitRequestFullscreen();
+            } else if (video.msRequestFullscreen) { /* IE11 */
+                video.msRequestFullscreen();
+            }
+            
+            // Unmute video when in fullscreen
+            video.muted = false;
+        }
+    </script>
 </body>
 </html> 

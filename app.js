@@ -1,5 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // DOM Elements
+    // Add console log at the start of DOMContentLoaded
+    console.log('DOM Content Loaded');
+
+    // Keep all your existing DOM element declarations
     const fileInput = document.getElementById('fileInput');
     const fileName = document.getElementById('fileName');
     const loadingSection = document.getElementById('loadingSection');
@@ -51,6 +54,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const highlightNext = document.getElementById('highlightNext');
     const showHighlightsBtn = document.getElementById('showHighlightsBtn');
 
+    // Add error checking for critical elements
+    if (!fileInput || !fileName || !loadingSection) {
+        console.error('Critical DOM elements missing:', {
+            fileInput: !!fileInput,
+            fileName: !!fileName,
+            loadingSection: !!loadingSection
+        });
+        return;
+    }
+
     let activityChart = null;
     let currentData = null;
     let currentYear = null;
@@ -67,6 +80,59 @@ document.addEventListener('DOMContentLoaded', () => {
     let showingAllDmYears = false;
     let dmData = null;
 
+    // Move chartScaleOptions here, before it's used
+    const chartScaleOptions = {
+        x: {
+            type: 'time',
+            time: {
+                unit: 'day',
+                displayFormats: {
+                    day: 'MMM d'
+                },
+                tooltipFormat: 'PP'
+            },
+            title: {
+                display: true,
+                text: 'Date',
+                font: {
+                    size: 12
+                }
+            },
+            grid: {
+                display: false
+            },
+            ticks: {
+                maxTicksLimit: 8,
+                source: 'auto',
+                autoSkip: true,
+                font: {
+                    size: 11
+                }
+            }
+        },
+        y: {
+            beginAtZero: true,
+            title: {
+                display: true,
+                text: 'Number of Activities',
+                font: {
+                    size: 12
+                }
+            },
+            ticks: {
+                stepSize: 1,
+                maxTicksLimit: 6,
+                font: {
+                    size: 11
+                }
+            },
+            grid: {
+                borderDash: [2, 2],
+                drawBorder: false
+            }
+        }
+    };
+
     // Constants
     const CUTOFF_DATE = new Date('2016-09-01');
     const HEATMAP_COLORS = [
@@ -78,31 +144,126 @@ document.addEventListener('DOMContentLoaded', () => {
         'rgba(254, 44, 85, 1)'       // High activity
     ];
 
-    // Event Listeners
-    fileInput.addEventListener('change', handleFileUpload);
-    howToGetLink.addEventListener('click', showModal);
-    closeButton.addEventListener('click', hideModal);
-    statsToggle.addEventListener('click', toggleStats);
-    vizTypeToggle.addEventListener('change', handleVizTypeChange);
-    prevYearBtn.addEventListener('click', () => navigateYear(-1));
-    nextYearBtn.addEventListener('click', () => navigateYear(1));
-    allYearsBtn.addEventListener('click', toggleAllYears);
-    commentStatsToggle.addEventListener('click', toggleCommentStats);
-    commentPrevYear.addEventListener('click', () => navigateCommentYear(-1));
-    commentNextYear.addEventListener('click', () => navigateCommentYear(1));
-    commentAllYearsBtn.addEventListener('click', toggleAllCommentYears);
-    dmStatsToggle.addEventListener('click', toggleDmStats);
-    dmPrevYear.addEventListener('click', () => navigateDmYear(-1));
-    dmNextYear.addEventListener('click', () => navigateDmYear(1));
-    dmAllYearsBtn.addEventListener('click', toggleAllDmYears);
-    showHighlightsBtn.addEventListener('click', () => {
-        visualizationSection.classList.add('hidden');
-        const yearStats = currentData.statsByYear[currentYear];
-        showHighlights(yearStats, currentYear);
-    });
-    window.addEventListener('click', (e) => {
-        if (e.target === modal) hideModal();
-    });
+    // Add error checking for all elements that have event listeners
+    const requiredElements = {
+        fileInput,
+        howToGetLink,
+        closeButton,
+        statsToggle,
+        vizTypeToggle,
+        prevYearBtn,
+        nextYearBtn,
+        allYearsBtn,
+        commentStatsToggle,
+        commentPrevYear,
+        commentNextYear,
+        commentAllYearsBtn,
+        dmStatsToggle,
+        dmPrevYear,
+        dmNextYear,
+        dmAllYearsBtn,
+        showHighlightsBtn,
+        modal
+    };
+
+    // Log which elements are missing
+    const missingElements = Object.entries(requiredElements)
+        .filter(([key, element]) => !element)
+        .map(([key]) => key);
+
+    if (missingElements.length > 0) {
+        console.error('Missing DOM elements:', missingElements);
+    }
+
+    // Add event listeners only if elements exist
+    if (fileInput) {
+        fileInput.addEventListener('change', (e) => {
+            console.log('File input changed');
+            handleFileUpload(e);
+        });
+    }
+
+    if (howToGetLink) {
+        howToGetLink.addEventListener('click', showModal);
+    }
+
+    if (closeButton) {
+        closeButton.addEventListener('click', hideModal);
+    }
+
+    if (statsToggle) {
+        statsToggle.addEventListener('click', (e) => {
+            console.log('Stats toggle clicked');
+            e.preventDefault();
+            toggleStats();
+        });
+    }
+
+    if (vizTypeToggle) {
+        vizTypeToggle.addEventListener('change', handleVizTypeChange);
+    }
+
+    if (prevYearBtn) {
+        prevYearBtn.addEventListener('click', () => navigateYear(-1));
+    }
+
+    if (nextYearBtn) {
+        nextYearBtn.addEventListener('click', () => navigateYear(1));
+    }
+
+    if (allYearsBtn) {
+        allYearsBtn.addEventListener('click', (e) => {
+            console.log('All years button clicked');
+            e.preventDefault();
+            toggleAllYears();
+        });
+    }
+
+    if (commentStatsToggle) {
+        commentStatsToggle.addEventListener('click', toggleCommentStats);
+    }
+
+    if (commentPrevYear) {
+        commentPrevYear.addEventListener('click', () => navigateCommentYear(-1));
+    }
+
+    if (commentNextYear) {
+        commentNextYear.addEventListener('click', () => navigateCommentYear(1));
+    }
+
+    if (commentAllYearsBtn) {
+        commentAllYearsBtn.addEventListener('click', toggleAllCommentYears);
+    }
+
+    if (dmStatsToggle) {
+        dmStatsToggle.addEventListener('click', toggleDmStats);
+    }
+
+    if (dmPrevYear) {
+        dmPrevYear.addEventListener('click', () => navigateDmYear(-1));
+    }
+
+    if (dmNextYear) {
+        dmNextYear.addEventListener('click', () => navigateDmYear(1));
+    }
+
+    if (dmAllYearsBtn) {
+        dmAllYearsBtn.addEventListener('click', toggleAllDmYears);
+    }
+
+    if (showHighlightsBtn) {
+        showHighlightsBtn.addEventListener('click', () => {
+            visualizationSection.classList.add('hidden');
+            const yearStats = currentData.statsByYear[currentYear];
+            showHighlights(yearStats, currentYear);
+        });
+    }
+
+    if (modal) {
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) hideModal();
+        });
+    }
 
     function showModal(e) {
         e.preventDefault();
@@ -114,24 +275,41 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function toggleStats() {
-        statsContent.classList.toggle('hidden');
-        statsToggle.classList.toggle('active');
-        const icon = statsToggle.querySelector('.toggle-icon');
-        if (icon) {
-            icon.textContent = statsContent.classList.contains('hidden') ? '▼' : '▲';
+        console.log('Toggling stats');
+        const content = document.getElementById('statsContent');
+        const toggle = document.getElementById('statsToggle');
+        
+        if (!content || !toggle) {
+            console.error('Stats elements not found:', { content: !!content, toggle: !!toggle });
+            return;
         }
+
+        content.classList.toggle('hidden');
+        toggle.classList.toggle('active');
+        
+        const icon = toggle.querySelector('.toggle-icon');
+        if (icon) {
+            icon.textContent = content.classList.contains('hidden') ? '▼' : '▲';
+        }
+        
+        console.log('Stats visibility:', !content.classList.contains('hidden'));
     }
 
     function toggleAllYears() {
+        console.log('Toggling all years');
+        if (!allYearsBtn || !currentData) {
+            console.error('Required elements not found:', { 
+                allYearsBtn: !!allYearsBtn, 
+                currentData: !!currentData 
+            });
+            return;
+        }
+
         showingAllYears = !showingAllYears;
+        console.log('showingAllYears:', showingAllYears);
+        
         allYearsBtn.textContent = showingAllYears ? 'Show Single Year' : 'Show All Years';
         allYearsBtn.classList.toggle('active', showingAllYears);
-        
-        if (vizTypeToggle.checked) {
-            showingAllYears = false;
-            allYearsBtn.classList.remove('active');
-            allYearsBtn.textContent = 'Show All Years';
-        }
         
         updateVisualization();
         updateYearNavigation();
@@ -169,6 +347,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function navigateYear(direction) {
+        console.log('Navigating year:', { direction, currentYear, availableYears });
         const currentIndex = availableYears.indexOf(currentYear);
         const newIndex = currentIndex + direction;
         
@@ -176,6 +355,7 @@ document.addEventListener('DOMContentLoaded', () => {
             currentYear = availableYears[newIndex];
             updateVisualization();
             updateYearNavigation();
+            console.log('New year:', currentYear);
         }
     }
 
@@ -200,8 +380,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function handleFileUpload(event) {
+        console.log('File upload started');
         const file = event.target.files[0];
-        if (!file) return;
+        if (!file) {
+            console.log('No file selected');
+            return;
+        }
 
         fileName.textContent = file.name;
         loadingSection.classList.remove('hidden');
@@ -211,6 +395,7 @@ document.addEventListener('DOMContentLoaded', () => {
         profileSection.classList.add('hidden');
 
         try {
+            console.log('Processing file:', file.name);
             const jsonData = await readFileContent(file);
             
             // Process profile data first
@@ -260,8 +445,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error('No valid data found in the file');
             }
         } catch (error) {
+            console.error('Error in handleFileUpload:', error);
             alert('Error processing file: ' + error.message);
-            console.error('Error details:', error);
         } finally {
             loadingSection.classList.add('hidden');
         }
@@ -287,6 +472,51 @@ document.addEventListener('DOMContentLoaded', () => {
         return date >= CUTOFF_DATE;
     }
 
+    // Helper function to get value regardless of case
+    function getFieldValue(item, ...fieldNames) {
+        for (const field of fieldNames) {
+            // Check uppercase, lowercase, and original versions
+            const value = item[field] || item[field.toLowerCase()] || item[field.toUpperCase()];
+            if (value !== undefined) return value;
+        }
+        return null;
+    }
+
+    // Helper function to process activities
+    function processActivityList(items, statKey, activities, statsByYear, allStats) {
+        if (!items) return;
+        items.forEach(item => {
+            // Use the helper function to get date value
+            const dateValue = getFieldValue(item, 'Date', 'date', 'DATE');
+            const linkValue = getFieldValue(item, 'VideoLink', 'videoLink', 'link');
+            
+            if (dateValue) {
+                const date = new Date(dateValue);
+                if (isValidDate(date)) {
+                    activities.push(date);
+                    const year = date.getFullYear();
+                    
+                    // Initialize stats for the year if not exists
+                    if (!statsByYear[year]) {
+                        statsByYear[year] = {
+                            likes: 0,
+                            videoBrowsing: 0,
+                            following: 0,
+                            favoriteEffects: 0,
+                            favoriteSounds: 0,
+                            favoriteVideos: 0,
+                            shares: 0
+                        };
+                    }
+                    
+                    // Update both all-time and year-specific stats
+                    allStats[statKey]++;
+                    statsByYear[year][statKey]++;
+                }
+            }
+        });
+    }
+
     function processJsonData(data) {
         const activities = [];
         const statsByYear = {};
@@ -300,46 +530,33 @@ document.addEventListener('DOMContentLoaded', () => {
             shares: 0
         };
 
-        // Helper function to process activities
-        function processActivityList(items, statKey) {
-            if (!items) return;
-            items.forEach(item => {
-                if (item.Date) {
-                    const date = new Date(item.Date);
-                    if (isValidDate(date)) {
-                        activities.push(date);
-                        const year = date.getFullYear();
-                        
-                        // Initialize stats for the year if not exists
-                        if (!statsByYear[year]) {
-                            statsByYear[year] = {
-                                likes: 0,
-                                videoBrowsing: 0,
-                                following: 0,
-                                favoriteEffects: 0,
-                                favoriteSounds: 0,
-                                favoriteVideos: 0,
-                                shares: 0
-                            };
-                        }
-                        
-                        // Update both all-time and year-specific stats
-                        allStats[statKey]++;
-                        statsByYear[year][statKey]++;
-                    }
-                }
-            });
-        }
-
         // Process all activity types
         if (data.Activity) {
-            processActivityList(data.Activity['Like List']?.ItemFavoriteList, 'likes');
-            processActivityList(data.Activity['Video Browsing History']?.VideoList, 'videoBrowsing');
-            processActivityList(data.Activity['Following List']?.Following, 'following');
-            processActivityList(data.Activity['Favorite Effects']?.FavoriteEffectsList, 'favoriteEffects');
-            processActivityList(data.Activity['Favorite Sounds']?.FavoriteSoundList, 'favoriteSounds');
-            processActivityList(data.Activity['Favorite Videos']?.FavoriteVideoList, 'favoriteVideos');
-            processActivityList(data.Activity['Share History']?.ShareHistoryList, 'shares');
+            console.log('Full Activity structure:', data.Activity);
+            console.log('Like data:', {
+                likePath: data.Activity.Like,
+                likeListPath: data.Activity['Like List'],
+                itemFavoriteList: data.Activity.Like?.ItemFavoriteList,
+                alternativePath: data.Activity['Like List']?.ItemFavoriteList
+            });
+            
+            // Process each activity type - pass the arrays and objects as parameters
+            processActivityList(data.Activity['Like List']?.ItemFavoriteList, 'likes', activities, statsByYear, allStats);
+            processActivityList(data.Activity['Video Browsing History']?.VideoList, 'videoBrowsing', activities, statsByYear, allStats);
+            processActivityList(data.Activity['Following List']?.Following, 'following', activities, statsByYear, allStats);
+            processActivityList(data.Activity['Favorite Effects']?.FavoriteEffectsList, 'favoriteEffects', activities, statsByYear, allStats);
+            processActivityList(data.Activity['Favorite Sounds']?.FavoriteSoundList, 'favoriteSounds', activities, statsByYear, allStats);
+            processActivityList(data.Activity['Favorite Videos']?.FavoriteVideoList, 'favoriteVideos', activities, statsByYear, allStats);
+            processActivityList(data.Activity['Share History']?.ShareHistoryList, 'shares', activities, statsByYear, allStats);
+
+            // Add these console logs in processJsonData function
+            if (data.Activity) {
+                console.log('Activity data structure:', {
+                    like: data.Activity.Like,
+                    likeFavorites: data.Activity.Like?.ItemFavoriteList,
+                    videoBrowsing: data.Activity['Video Browsing History']?.VideoList,
+                });
+            }
         }
 
         // Add total activities to each year's stats and all-time stats
@@ -1125,12 +1342,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function toggleCommentStats() {
-        commentStatsContent.classList.toggle('hidden');
-        commentStatsToggle.classList.toggle('active');
-        const icon = commentStatsToggle.querySelector('.toggle-icon');
+        const content = document.getElementById('commentStatsContent');
+        const toggle = document.getElementById('commentStatsToggle');
+        
+        content.classList.toggle('hidden');
+        toggle.classList.toggle('active');
+        
+        const icon = toggle.querySelector('.toggle-icon');
         if (icon) {
-            icon.textContent = commentStatsContent.classList.contains('hidden') ? '▼' : '▲';
+            icon.textContent = content.classList.contains('hidden') ? '▼' : '▲';
         }
+        
+        console.log('Comment stats toggled:', !content.classList.contains('hidden'));
     }
 
     function processDmData(data) {
@@ -1293,60 +1516,7 @@ document.addEventListener('DOMContentLoaded', () => {
             displayMessages(messagesToShow);
         }
     }
-
-    // Add this before the chart creation functions
-    const chartScaleOptions = {
-        x: {
-            type: 'time',
-            time: {
-                unit: 'day',
-                displayFormats: {
-                    day: 'MMM d'
-                },
-                tooltipFormat: 'PP'
-            },
-            title: {
-                display: true,
-                text: 'Date',
-                font: {
-                    size: 12
-                }
-            },
-            grid: {
-                display: false
-            },
-            ticks: {
-                maxTicksLimit: 8,
-                source: 'auto',
-                autoSkip: true,
-                font: {
-                    size: 11
-                }
-            }
-        },
-        y: {
-            beginAtZero: true,
-            title: {
-                display: true,
-                text: 'Number of Activities',
-                font: {
-                    size: 12
-                }
-            },
-            ticks: {
-                stepSize: 1,
-                maxTicksLimit: 6,
-                font: {
-                    size: 11
-                }
-            },
-            grid: {
-                borderDash: [2, 2],
-                drawBorder: false
-            }
-        }
-    };
-
+    
     // Update createDmChart function to use custom scale options
     function createDmChart(data) {
         if (dmChart) {
@@ -1577,12 +1747,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function toggleDmStats() {
-        dmStatsContent.classList.toggle('hidden');
-        dmStatsToggle.classList.toggle('active');
-        const icon = dmStatsToggle.querySelector('.toggle-icon');
+        const content = document.getElementById('dmStatsContent');
+        const toggle = document.getElementById('dmStatsToggle');
+        
+        content.classList.toggle('hidden');
+        toggle.classList.toggle('active');
+        
+        const icon = toggle.querySelector('.toggle-icon');
         if (icon) {
-            icon.textContent = dmStatsContent.classList.contains('hidden') ? '▼' : '▲';
+            icon.textContent = content.classList.contains('hidden') ? '▼' : '▲';
         }
+        
+        console.log('DM stats toggled:', !content.classList.contains('hidden'));
     }
 
     function navigateDmYear(direction) {
@@ -1807,6 +1983,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function showHighlights(stats, year) {
+        const highlightsSection = document.querySelector('.highlights-section');
+        const patterns = ['pattern-1', 'pattern-2', 'pattern-3', 'pattern-4'];
+        
         // Get comment and DM stats for the current year
         const commentStats = commentData.statsByYear[year] || { totalComments: 0, avgWordsPerComment: 0 };
         const dmStats = dmData.statsByYear[year] || { totalMessages: 0, uniqueUsers: 0, avgMessageLength: 0 };
@@ -1820,6 +1999,28 @@ document.addEventListener('DOMContentLoaded', () => {
         const mostMessaged = dmStats.userFrequency ? 
             Object.entries(dmStats.userFrequency)
                 .sort(([,a], [,b]) => b - a)[0] : ['No messages', 0];
+
+        // Define color combinations
+        const colorCombinations = [
+            { start: '#D92347', end: '#256ef4' },  // Original TikTok colors
+            { start: '#D03358', end: '#E74529' },  // Red-Orange gradient
+            { start: '#344AB8', end: '#AA3FA3' },  // Purple-Pink gradient
+            { start: '#067EC4', end: '#64A39C' },  // Blue-Cyan gradient
+            { start: '#648DB6', end: '#9E78C2' },  // Light Blue-Purple gradient
+            { start: '#B7DB64', end: '#74B47C' },  // Green gradient
+            { start: '#B267B6', end: '#249FC1' },  // Pink-Blue gradient
+            { start: '#B46B60', end: '#BF4C63' },  // Peach-Pink gradient
+            { start: '#AC7555', end: '#AD8E3E' },  // Orange-Yellow gradient
+            { start: '#56AF7F', end: '#B1AE58' }   // Green-Yellow gradient
+        ];
+
+        function setRandomColors() {
+            const combination = colorCombinations[Math.floor(Math.random() * colorCombinations.length)];
+            highlightsSection.style.setProperty('--gradient-start', combination.start);
+            highlightsSection.style.setProperty('--gradient-end', combination.end);
+            highlightsSection.style.setProperty('--gradient-start-alpha', `${combination.start}E6`);
+            highlightsSection.style.setProperty('--gradient-end-alpha', `${combination.end}E6`);
+        }
 
         // Define message pools for each highlight type
         const messagesByType = {
@@ -1945,7 +2146,6 @@ document.addEventListener('DOMContentLoaded', () => {
             ]
         };
 
-        // Function to get random message
         const getRandomMessage = (type) => {
             const messages = messagesByType[type];
             return messages[Math.floor(Math.random() * messages.length)];
@@ -1994,7 +2194,7 @@ document.addEventListener('DOMContentLoaded', () => {
             },
             {
                 title: `You commented ${commentStats.totalComments.toLocaleString()} times this year!`,
-                value: '💭',
+                value: '💬',
                 message: getRandomMessage('comments')
             },
             {
@@ -2031,6 +2231,11 @@ document.addEventListener('DOMContentLoaded', () => {
         let currentHighlight = 0;
 
         function showSummaryScreen() {
+            patterns.forEach(pattern => highlightsSection.classList.remove(pattern));
+            const randomPattern = patterns[Math.floor(Math.random() * patterns.length)];
+            setRandomColors();
+            highlightsSection.classList.add(randomPattern);
+
             highlightTitle.style.fontSize = '2rem';
             highlightValue.style.display = 'none';
             highlightNext.style.display = 'none';
@@ -2094,7 +2299,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 highlightNext.removeEventListener('click', showNextHighlight);
             });
 
-            // Share button functionality
+            // Share functionality
             const shareButton = document.getElementById('shareButton');
             const shareOptions = document.getElementById('shareOptions');
             const shareInstagram = document.getElementById('shareInstagram');
@@ -2166,20 +2371,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            patterns.forEach(pattern => highlightsSection.classList.remove(pattern));
+            const randomPattern = patterns[Math.floor(Math.random() * patterns.length)];
+            setRandomColors();
+            highlightsSection.classList.add(randomPattern);
+
             highlightTitle.style.fontSize = '2.5rem';
             highlightValue.style.display = 'block';
-            highlightNext.style.display = 'flex'; // Show the continue button for regular highlights
+            highlightNext.style.display = 'flex';
             
             const highlight = highlights[currentHighlight];
             
-            // Update the HTML structure to include the message
             highlightTitle.innerHTML = `
                 <div class="highlight-main">${highlight.title}</div>
                 <div class="highlight-message">${highlight.message}</div>
             `;
             highlightValue.textContent = highlight.value;
             
-            // Add animations
             const mainText = highlightTitle.querySelector('.highlight-main');
             const messageText = highlightTitle.querySelector('.highlight-message');
             
@@ -2196,4 +2404,20 @@ document.addEventListener('DOMContentLoaded', () => {
         highlightsSection.classList.remove('hidden');
         showNextHighlight();
     }
+
+    function showHighlight(index) {
+        const highlightsSection = document.querySelector('.highlights-section');
+        const patterns = ['pattern-1', 'pattern-2', 'pattern-3', 'pattern-4'];
+        
+        // Remove any existing pattern classes
+        patterns.forEach(pattern => highlightsSection.classList.remove(pattern));
+        
+        // Add a random pattern class
+        const randomPattern = patterns[Math.floor(Math.random() * patterns.length)];
+        highlightsSection.classList.add(randomPattern);
+        
+        // Your existing highlight display logic here...
+    }
+    
 }); 
+
