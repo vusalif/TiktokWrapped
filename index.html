@@ -7,6 +7,11 @@
     <link rel="stylesheet" href="styles.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Uchen&family=Viga&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
@@ -14,6 +19,36 @@
             <h1>TikTok Wrapped</h1>
             <p class="subtitle">Visualize your year on TikTok</p>
         </header>
+
+        <div class="profile-section hidden" id="profileSection">
+            <div class="profile-container">
+                <div class="profile-info">
+                    <h2 class="username" id="profileUsername"></h2>
+                    <p class="bio" id="profileBio"></p>
+                    <div class="profile-stats">
+                        <div class="stat">
+                            <span class="stat-value" id="profileLikes"></span>
+                            <span class="stat-label">Likes Received</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="highlights-section hidden" id="highlightsSection">
+            <div class="highlight-container">
+                <div class="highlight-content">
+                    <h2 class="highlight-title" id="highlightTitle"></h2>
+                    <p class="highlight-value" id="highlightValue"></p>
+                </div>
+                <button class="highlight-next" id="highlightNext">
+                    <span>Continue</span>
+                    <svg width="24" height="24" viewBox="0 0 24 24">
+                        <path d="M9 18l6-6-6-6" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
 
         <main>
             <div class="upload-section" id="uploadSection">
@@ -37,7 +72,12 @@
             </div>
 
             <div class="visualization-section hidden" id="visualizationSection">
-                <h2>Your TikTok Activity</h2>
+                <div class="viz-header">
+                    <h2>Your TikTok Activity</h2>
+                    <button class="show-highlights-btn" id="showHighlightsBtn">
+                        <span>✨ Show Highlights</span>
+                    </button>
+                </div>
                 <div class="viz-controls">
                     <div class="viz-toggle">
                         <label class="switch">

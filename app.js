@@ -41,7 +41,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const dmNextYear = document.getElementById('dmNextYear');
     const dmCurrentYear = document.getElementById('dmCurrentYear');
     const dmAllYearsBtn = document.getElementById('dmAllYearsBtn');
-    
+    const profileSection = document.getElementById('profileSection');
+    const profileUsername = document.getElementById('profileUsername');
+    const profileBio = document.getElementById('profileBio');
+    const profileLikes = document.getElementById('profileLikes');
+    const highlightsSection = document.getElementById('highlightsSection');
+    const highlightTitle = document.getElementById('highlightTitle');
+    const highlightValue = document.getElementById('highlightValue');
+    const highlightNext = document.getElementById('highlightNext');
+    const showHighlightsBtn = document.getElementById('showHighlightsBtn');
+
     let activityChart = null;
     let currentData = null;
     let currentYear = null;
@@ -86,6 +95,11 @@ document.addEventListener('DOMContentLoaded', () => {
     dmPrevYear.addEventListener('click', () => navigateDmYear(-1));
     dmNextYear.addEventListener('click', () => navigateDmYear(1));
     dmAllYearsBtn.addEventListener('click', toggleAllDmYears);
+    showHighlightsBtn.addEventListener('click', () => {
+        visualizationSection.classList.add('hidden');
+        const yearStats = currentData.statsByYear[currentYear];
+        showHighlights(yearStats, currentYear);
+    });
     window.addEventListener('click', (e) => {
         if (e.target === modal) hideModal();
     });
@@ -194,9 +208,20 @@ document.addEventListener('DOMContentLoaded', () => {
         visualizationSection.classList.add('hidden');
         commentsSection.classList.add('hidden');
         directMessagesSection.classList.add('hidden');
+        profileSection.classList.add('hidden');
 
         try {
             const jsonData = await readFileContent(file);
+            
+            // Process profile data first
+            const profileData = processProfileData(jsonData);
+            if (profileData) {
+                profileUsername.textContent = `@${profileData.username}`;
+                profileBio.textContent = profileData.bio;
+                profileLikes.textContent = Number(profileData.likesReceived).toLocaleString();
+                profileSection.classList.remove('hidden');
+            }
+
             currentData = processJsonData(jsonData);
             commentData = processCommentData(jsonData);
             dmData = processDmData(jsonData);
@@ -212,8 +237,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentCommentYear = currentYear;
                 currentDmYear = currentYear;
                 
+                // Show highlights first
+                const yearStats = currentData.statsByYear[currentYear];
+                showHighlights(yearStats, currentYear);
+                
                 updateVisualization();
-                visualizationSection.classList.remove('hidden');
                 
                 if (commentData.comments.length > 0) {
                     updateCommentVisualization();
@@ -1115,10 +1143,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 userFrequency: {},
                 avgMessageLength: 0
             },
-            statsByYear: {}
+            statsByYear: {},
+            originalData: data  // Store the original data
         };
 
         try {
+            // Get user's own username from the correct path in profile information
+            const ownUsername = data?.Profile?.['Profile Information']?.ProfileMap?.userName || '';
+            console.log('Own username:', ownUsername); // For debugging
+
             if (!data?.['Direct Messages']?.['Chat History']?.ChatHistory) {
                 console.log('No DM data found');
                 return emptyData;
@@ -1133,6 +1166,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (Array.isArray(chatMessages)) {
                     chatMessages.forEach(message => {
                         if (message.Date && message.From && message.Content) {
+                            // Skip messages from own username
+                            if (message.From === ownUsername) {
+                                return;
+                            }
+
                             const date = new Date(message.Date);
                             if (isValidDate(date)) {
                                 const year = date.getFullYear();
@@ -1159,7 +1197,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 messages.push(messageData);
                                 messagesByYear[year].messages.push(messageData);
 
-                                // Track user frequency
+                                // Track user frequency (excluding own username)
                                 userFrequency[message.From] = (userFrequency[message.From] || 0) + 1;
                                 messagesByYear[year].userFrequency[message.From] = 
                                     (messagesByYear[year].userFrequency[message.From] || 0) + 1;
@@ -1208,7 +1246,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 messages: messages,
                 stats: allStats,
-                statsByYear: messagesByYear
+                statsByYear: messagesByYear,
+                originalData: data  // Include the original data in the return
             };
         } catch (error) {
             console.error('Error processing DM data:', error);
@@ -1749,5 +1788,412 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         return new Chart(ctx, chartConfig);
+    }
+
+    function processProfileData(data) {
+        try {
+            const profileMap = data?.Profile?.['Profile Information']?.ProfileMap;
+            if (!profileMap) return null;
+
+            return {
+                username: profileMap.userName || '',
+                bio: profileMap.bioDescription || '',
+                likesReceived: profileMap.likesReceived || '0'
+            };
+        } catch (error) {
+            console.error('Error processing profile data:', error);
+            return null;
+        }
+    }
+
+    function showHighlights(stats, year) {
+        // Get comment and DM stats for the current year
+        const commentStats = commentData.statsByYear[year] || { totalComments: 0, avgWordsPerComment: 0 };
+        const dmStats = dmData.statsByYear[year] || { totalMessages: 0, uniqueUsers: 0, avgMessageLength: 0 };
+        
+        // Get username and likesReceived from the correct path
+        const profileMap = dmData?.originalData?.Profile?.['Profile Information']?.ProfileMap;
+        const username = profileMap?.userName || '';
+        const likesReceived = profileMap?.likesReceived || '0';
+        
+        // Find most messaged person
+        const mostMessaged = dmStats.userFrequency ? 
+            Object.entries(dmStats.userFrequency)
+                .sort(([,a], [,b]) => b - a)[0] : ['No messages', 0];
+
+        // Define message pools for each highlight type
+        const messagesByType = {
+            interactions: [
+                "Wow, you're quite active!",
+                "That's a lot of TikTok time!",
+                "You really love TikTok, don't you?",
+                "Living your best TikTok life!",
+                "Now that's what I call dedication!",
+                "You're basically a TikTok pro!",
+                "That's impressive!",
+                "You've been busy this year!",
+                "TikTok must love you!",
+                "That's some serious dedication!"
+            ],
+            likes: [
+                "Your thumb must be tired!",
+                "Spreading the love, I see!",
+                "That's a lot of double-taps!",
+                "You're quite generous with those likes!",
+                "Making creators happy, one like at a time!",
+                "Oh... that's too much, isn't it?",
+                "Your heart is as big as your like count!",
+                "You really know how to show appreciation!",
+                "That's a lot of love to give!",
+                "Like button's your best friend, huh?"
+            ],
+            following: [
+                "Building quite the community!",
+                "Your FYP must be amazing!",
+                "That's quite a following spree!",
+                "Making friends along the way!",
+                "Your feed must be super interesting!",
+                "Curious about everything, aren't you?",
+                "That's a lot of awesome creators!",
+                "You're really expanding your horizons!",
+                "Building your own TikTok family!",
+                "Never missing out on good content!"
+            ],
+            effects: [
+                "Getting creative with those effects!",
+                "Love experimenting, don't you?",
+                "You're quite the effects collector!",
+                "That's some serious effect game!",
+                "Ready for any video situation!",
+                "You must make amazing videos!",
+                "Effect master in the house!",
+                "Your videos must look fantastic!",
+                "Always ready with the perfect effect!",
+                "That's quite an effects library!"
+            ],
+            sounds: [
+                "You've got quite the playlist!",
+                "Music to your ears, right?",
+                "That's a lot of bangers!",
+                "Your sound collection is fire!",
+                "Ready for any sound trend!",
+                "DJ TikTok in the house!",
+                "Your ears must be happy!",
+                "That's quite the sound library!",
+                "Never missing a beat!",
+                "Sound collector extraordinaire!"
+            ],
+            favorites: [
+                "Saving the best for later!",
+                "You've got great taste!",
+                "That's quite a collection!",
+                "Building your own hall of fame!",
+                "Never losing track of the good stuff!",
+                "Your favorites must be amazing!",
+                "Curator of the finest TikToks!",
+                "That's some serious bookmarking!",
+                "Your memory box must be full of gems!",
+                "Quality content collector!"
+            ],
+            shares: [
+                "Spreading the joy around!",
+                "Sharing is caring!",
+                "Making everyone's day better!",
+                "Your friends must love your shares!",
+                "That's the spirit of social media!",
+                "Keeping your friends entertained!",
+                "Community spirit at its finest!",
+                "Sharing the TikTok love!",
+                "Your share game is strong!",
+                "Making TikTok more social!"
+            ],
+            watched: [
+                "Your eyes must be tired!",
+                "That's a lot of scrolling!",
+                "Time flies when you're having fun!",
+                "TikTok really knows how to keep you watching!",
+                "That's some serious screen time!",
+                "Can't stop watching, can you?",
+                "Just one more video, right?",
+                "Your thumb must be tired from scrolling!",
+                "FYP got you good!",
+                "Living the TikTok life!"
+            ],
+            comments: [
+                "Quite the conversationalist!",
+                "Making your voice heard!",
+                "Always got something to say!",
+                "Engaging with the community!",
+                "Your keyboard must be worn out!",
+                "Spreading thoughts everywhere!",
+                "That's some active participation!",
+                "Comment section champion!",
+                "Never shy to share your thoughts!",
+                "Making TikTok more interactive!"
+            ],
+            messages: [
+                "Social butterfly alert!",
+                "Keeping the conversations flowing!",
+                "That's a lot of chatting!",
+                "Making connections everywhere!",
+                "Your message game is strong!",
+                "Never missing a chat!",
+                "Quite the social networker!",
+                "Building relationships one message at a time!",
+                "Communication is key!",
+                "TikTok's own social star!"
+            ]
+        };
+
+        // Function to get random message
+        const getRandomMessage = (type) => {
+            const messages = messagesByType[type];
+            return messages[Math.floor(Math.random() * messages.length)];
+        };
+
+        const highlights = [
+            {
+                title: `You did ${stats.totalActivities.toLocaleString()} interactions this year!`,
+                value: '🎉',
+                message: getRandomMessage('interactions')
+            },
+            {
+                title: `You liked ${stats.likes.toLocaleString()} videos in ${year}!`,
+                value: '❤️',
+                message: getRandomMessage('likes')
+            },
+            {
+                title: `You followed ${stats.following.toLocaleString()} people this year`,
+                value: '👥',
+                message: getRandomMessage('following')
+            },
+            {
+                title: `You saved ${stats.favoriteEffects.toLocaleString()} effects this year`,
+                value: '✨',
+                message: getRandomMessage('effects')
+            },
+            {
+                title: `You saved ${stats.favoriteSounds.toLocaleString()} sounds in ${year}`,
+                value: '🎵',
+                message: getRandomMessage('sounds')
+            },
+            {
+                title: `You added ${stats.favoriteVideos.toLocaleString()} videos to favourite in ${year}`,
+                value: '⭐',
+                message: getRandomMessage('favorites')
+            },
+            {
+                title: `You shared ${stats.shares.toLocaleString()} videos this year!`,
+                value: '🔄',
+                message: getRandomMessage('shares')
+            },
+            {
+                title: `You watched ${stats.videoBrowsing.toLocaleString()} videos in ${year}`,
+                value: '📺',
+                message: getRandomMessage('watched')
+            },
+            {
+                title: `You commented ${commentStats.totalComments.toLocaleString()} times this year!`,
+                value: '💭',
+                message: getRandomMessage('comments')
+            },
+            {
+                title: `Average ${Math.round(commentStats.avgWordsPerComment)} words per comment`,
+                value: '📝',
+                message: "That's quite expressive of you!"
+            },
+            {
+                title: mostMessaged[1] > 0 ? 
+                    `Your best friend is ${mostMessaged[0]}!` : 
+                    'No messages sent this year',
+                value: '👋',
+                message: mostMessaged[1] > 0 ? 
+                    "You two must have a lot to talk about!" : 
+                    "Maybe try sending some messages next year?"
+            },
+            {
+                title: `You messaged ${dmStats.totalMessages.toLocaleString()} times`,
+                value: '💌',
+                message: getRandomMessage('messages')
+            },
+            {
+                title: `You chatted with ${dmStats.uniqueUsers.toLocaleString()} people this year`,
+                value: '🤝',
+                message: "Your social circle is growing!"
+            },
+            {
+                title: `Average message length is ${Math.round(dmStats.avgMessageLength)} characters`,
+                value: '📨',
+                message: "Every character counts!"
+            }
+        ];
+
+        let currentHighlight = 0;
+
+        function showSummaryScreen() {
+            highlightTitle.style.fontSize = '2rem';
+            highlightValue.style.display = 'none';
+            highlightNext.style.display = 'none';
+            
+            const summaryHTML = `
+                <div class="highlights-summary">
+                    <h3>@${username}'s ${year} Wrapped</h3>
+                    <div class="summary-stats">
+                        <div class="summary-stat">
+                            <span class="summary-value">❤️ ${Number(likesReceived).toLocaleString()}</span>
+                            <span class="summary-label">Likes Received</span>
+                        </div>
+                        <div class="summary-stat">
+                            <span class="summary-value">👍 ${stats.likes.toLocaleString()}</span>
+                            <span class="summary-label">Videos Liked</span>
+                        </div>
+                        <div class="summary-stat">
+                            <span class="summary-value">👀 ${stats.videoBrowsing.toLocaleString()}</span>
+                            <span class="summary-label">Videos Watched</span>
+                        </div>
+                        <div class="summary-stat">
+                            <span class="summary-value">💬 ${commentStats.totalComments.toLocaleString()}</span>
+                            <span class="summary-label">Comments Made</span>
+                        </div>
+                        <div class="summary-stat">
+                            <span class="summary-value">👥 ${mostMessaged[0]}</span>
+                            <span class="summary-label">Best Friend</span>
+                        </div>
+                        <div class="summary-stat">
+                            <span class="summary-value">🎯 ${stats.totalActivities.toLocaleString()}</span>
+                            <span class="summary-label">Total Interactions</span>
+                        </div>
+                    </div>
+                    <div class="summary-actions">
+                        <button class="continue-to-dashboard" id="continueToDashboard">
+                            Continue to Dashboard
+                        </button>
+                        <div class="share-buttons">
+                            <button class="share-button" id="shareButton">
+                                Share <span class="share-icon">📤</span>
+                            </button>
+                            <div class="share-options hidden" id="shareOptions">
+                                <button class="share-option instagram" id="shareInstagram">
+                                    Download as PNG<span class="share-icon">📸</span>
+                                </button>
+                                <button class="share-option whatsapp" id="shareWhatsapp">
+                                    Share to WhatsApp <span class="share-icon">💬</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            highlightTitle.innerHTML = summaryHTML;
+
+            // Add click event listeners
+            document.getElementById('continueToDashboard').addEventListener('click', () => {
+                highlightsSection.classList.add('hidden');
+                visualizationSection.classList.remove('hidden');
+                highlightNext.removeEventListener('click', showNextHighlight);
+            });
+
+            // Share button functionality
+            const shareButton = document.getElementById('shareButton');
+            const shareOptions = document.getElementById('shareOptions');
+            const shareInstagram = document.getElementById('shareInstagram');
+            const shareWhatsapp = document.getElementById('shareWhatsapp');
+
+            shareButton.addEventListener('click', () => {
+                shareOptions.classList.toggle('hidden');
+            });
+
+            shareInstagram.addEventListener('click', () => {
+                // Hide share options and buttons before capture
+                shareOptions.classList.add('hidden');
+                shareButton.style.display = 'none';
+                document.getElementById('continueToDashboard').style.display = 'none';
+                
+                // Capture the entire highlights section
+                const captureElement = highlightsSection;
+                
+                html2canvas(captureElement, {
+                    backgroundColor: null,
+                    scale: 2,
+                    logging: true,
+                    width: window.innerWidth,
+                    height: window.innerHeight,
+                    windowWidth: window.innerWidth,
+                    windowHeight: window.innerHeight,
+                    useCORS: true,
+                    allowTaint: true,
+                    foreignObjectRendering: true
+                }).then(canvas => {
+                    // Show the buttons again
+                    shareButton.style.display = 'flex';
+                    document.getElementById('continueToDashboard').style.display = 'block';
+                    shareOptions.classList.remove('hidden');
+                    
+                    // Create download link
+                    const link = document.createElement('a');
+                    link.download = `tiktok-wrapped-${year}.png`;
+                    link.href = canvas.toDataURL('image/png', 1.0);
+                    link.click();
+                }).catch(error => {
+                    console.error('Error generating image:', error);
+                    alert('Error generating image. Please try again.');
+                    
+                    // Make sure to show the buttons again even if there's an error
+                    shareButton.style.display = 'flex';
+                    document.getElementById('continueToDashboard').style.display = 'block';
+                    shareOptions.classList.remove('hidden');
+                });
+            });
+
+            shareWhatsapp.addEventListener('click', () => {
+                const text = `Check out my TikTok Wrapped ${year}!\n\n` +
+                    `👤 @${username}\n` +
+                    `❤️ ${Number(likesReceived).toLocaleString()} Likes Received\n` +
+                    `👍 ${stats.likes.toLocaleString()} Videos Liked\n` +
+                    `👀 ${stats.videoBrowsing.toLocaleString()} Videos Watched\n` +
+                    `💬 ${commentStats.totalComments.toLocaleString()} Comments Made\n` +
+                    `🎯 ${stats.totalActivities.toLocaleString()} Total Interactions`;
+                
+                const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(text)}`;
+                window.open(whatsappUrl, '_blank');
+            });
+        }
+
+        function showNextHighlight() {
+            if (currentHighlight >= highlights.length) {
+                showSummaryScreen();
+                return;
+            }
+
+            highlightTitle.style.fontSize = '2.5rem';
+            highlightValue.style.display = 'block';
+            highlightNext.style.display = 'flex'; // Show the continue button for regular highlights
+            
+            const highlight = highlights[currentHighlight];
+            
+            // Update the HTML structure to include the message
+            highlightTitle.innerHTML = `
+                <div class="highlight-main">${highlight.title}</div>
+                <div class="highlight-message">${highlight.message}</div>
+            `;
+            highlightValue.textContent = highlight.value;
+            
+            // Add animations
+            const mainText = highlightTitle.querySelector('.highlight-main');
+            const messageText = highlightTitle.querySelector('.highlight-message');
+            
+            mainText.style.animation = 'slideUp 0.5s ease-out forwards';
+            messageText.style.animation = 'slideUp 0.5s ease-out 0.3s forwards';
+            highlightValue.style.animation = 'slideUp 0.5s ease-out 0.2s forwards';
+
+            currentHighlight++;
+        }
+
+        highlightNext.removeEventListener('click', showNextHighlight);
+        highlightNext.addEventListener('click', showNextHighlight);
+        
+        highlightsSection.classList.remove('hidden');
+        showNextHighlight();
     }
 }); 
